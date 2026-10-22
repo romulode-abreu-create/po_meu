@@ -2,7 +2,7 @@ const express = require('express');
 const db = require('./db');
 const app = express();
 const port = 3000;
-const calculardistancia = require('./calcdis.js')
+const calcularcomprimento = require('./calccom.js')
 const calculartemperatura = require('./calctemp.js')
 const calcularvelocidade = require('./calcvelo.js')
 
@@ -54,7 +54,8 @@ app.get('/medicao/:id', async (req, res) => {
   }
 })
 
-app.post('/', async (req, res) => {
+app.post('/medicao', async (req, res) => {
+
   const { descricao, tipo, valor_original, unidade_original, } = req.body;
   if (!descricao || !tipo || !valor_original || !unidade_original) {
     return res.status(400).json({
@@ -62,24 +63,78 @@ app.post('/', async (req, res) => {
       detalhes: error.message
     });
   }
-  try {
-    const [rows] = await db.execute('INSERT INTO `medicoes` (`id`,`descricao`,`tipo`,`valor_original`,`unidade_original`,`valor_convertido`,`unidade_convertida`,`classificacao`) VALUES (?,?,?,?,?,?,?,?);', [`id`, `descricao`, `tipo`, `valor_original`, `unidade_original`, `valor_convertido`, `unidade_convertida`, `classificacao`]);
-    res.status(201).json({
-      id: rows.insertId,
-      descricao,
-      tipo,
-      valor_original,
-      valor_convertido,
-      unidade_convertida,
-      classificacao
-    });
-  } catch (error) {
-    res.status(500).json({
-      mensagem: "Erro Interno do Servidor",
-      detalhes: error.message
-    });
+  if (tipo == "temperatura") {
+    const { valor_convertido, classificacao } = calculartemperatura(valor_original);
+    const unidade_convertida = "fahrenheit"
+
+    try {
+      const [rows] = await db.execute('INSERT INTO `medicoes` (`descricao`,`tipo`,`valor_original`,`unidade_original`,`valor_convertido`,`unidade_convertida`,`classificacao`) VALUES (?,?,?,?,?,?,?);', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao]);
+      res.status(201).json({
+        id: rows.insertId,
+        descricao,
+        tipo,
+        valor_original,
+        unidade_original,
+        valor_convertido,
+        unidade_convertida,
+        classificacao
+      });
+    } catch (error) {
+      res.status(500).json({
+        mensagem: "Erro Interno do Servidor",
+        detalhes: error.message
+      });
+    }
+  } else if (tipo == "comprimento") {
+    const { valor_convertido, classificacao } = calcularcomprimento(valor_original)
+    const unidade_convertida = "pés"
+
+    try {
+      const [rows] = await db.execute('INSERT INTO `medicoes` (`descricao`,`tipo`,`valor_original`,`unidade_original`,`valor_convertido`,`unidade_convertida`,`classificacao`) VALUES (?,?,?,?,?,?,?);', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao]);
+
+      res.status(201).json({
+        id: rows.insertId,
+        descricao,
+        tipo,
+        valor_original,
+        unidade_original,
+        valor_convertido,
+        unidade_convertida,
+        classificacao
+      })
+    } catch (error) {
+      res.status(500).json({
+        mensagem: "Erro Interno do Servidor",
+        detalhes: error.message
+      });
+    }
+  } else if (tipo == "velocidade") {
+    const { valor_convertido, classificacao } = calcularvelocidade(valor_original)
+    const unidade_convertida = "m/s"
+
+    try {
+      const [rows] = await db.execute('INSERT INTO `medicoes` (`descricao`,`tipo`,`valor_original`,`unidade_original`,`valor_convertido`,`unidade_convertida`,`classificacao`) VALUES (?,?,?,?,?,?,?);', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao]);
+
+      res.status(201).json({
+        id: rows.insertId,
+        descricao,
+        tipo,
+        valor_original,
+        unidade_original,
+        valor_convertido,
+        unidade_convertida,
+        classificacao
+      })
+    } catch (error) {
+      res.status(500).json({
+        mensagem: "Erro Interno do Servidor",
+        detalhes: error.message
+      });
+    }
   }
 })
+
+
 
 app.listen(port, () => {
   console.log(`funfando na porta:${port}`);
