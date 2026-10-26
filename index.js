@@ -163,7 +163,7 @@ app.put('/medicao/:id', async (req, res) => {
     const unidade_convertida = "pés"
 
     try {
-      const [rows] = db.execute('UPDATE `medicoes` SET `descricao` = ?,`tipo` = ?,`valor_original` = ? ,`unidade_original` = ? ,`valor_convertido` = ? ,`unidade_convertida` = ? ,`classificacao` = ? WHERE `medicoes`.`id` = ?;', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao, id])
+      const [rows] = await db.execute('UPDATE `medicoes` SET `descricao` = ?,`tipo` = ?,`valor_original` = ? ,`unidade_original` = ? ,`valor_convertido` = ? ,`unidade_convertida` = ? ,`classificacao` = ? WHERE `medicoes`.`id` = ?;', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao, id])
       res.status(200).json({
         mensagem: "atualizado com sucesso"
       })
