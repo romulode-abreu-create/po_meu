@@ -8,6 +8,10 @@ const calcularvelocidade = require('./calcvelo.js')
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send ('API funcional')
+})
+
 app.get('/medicao', async (req, res) => {
   try {
     const [rows] = await db.execute('SELECT * FROM `medicoes`');
@@ -190,6 +194,27 @@ app.put('/medicao/:id', async (req, res) => {
     }
   }
 })
+
+app.delete('/medicao/:id', async (req, res) => {
+  const {id} = req.params
+
+  try {
+    const [rows] = await db.execute ('DELETE FROM `medicoes` WHERE `id` = ?',[id])
+    if(rows.affectedRows === 0){
+      return res.status(404).json({
+        mensagem:"paciente não encontrado"
+      })
+    }
+    res.status[200].json({mensagem: "medição apagada com susseso"})
+  } catch (error) {
+    res.status(500).json({
+      mensagem: "Erro Interno do Servidor",
+      detalhes: error.message
+    });
+  }
+})
+
+
 
 
 
