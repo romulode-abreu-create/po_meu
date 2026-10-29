@@ -8,6 +8,10 @@ const calcularvelocidade = require('./calcvelo.js')
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send ('API funcional')
+})
+
 app.get('/medicao', async (req, res) => {
   try {
     const [rows] = await db.execute('SELECT * FROM `medicoes`');
@@ -56,7 +60,7 @@ app.get('/medicao/:id', async (req, res) => {
 
 app.post('/medicao', async (req, res) => {
 
-  const { descricao, tipo, valor_original, unidade_original, } = req.body;
+  const { descricao, tipo, valor_original, unidade_original } = req.body;
   if (!descricao || !tipo || !valor_original || !unidade_original) {
     return res.status(400).json({
       mensagem: "Verifique se todos os campos estão preenchidos",
@@ -133,6 +137,84 @@ app.post('/medicao', async (req, res) => {
     }
   }
 })
+
+app.put('/medicao/:id', async (req, res) => {
+  const { id } = req.params;
+  const { descricao, tipo, valor_original, unidade_original } = req.body;
+  if (!descricao || !tipo || !valor_original || !unidade_original) {
+    return res.status(400).json({
+      mensagem: "Verifique se todos os campos estão preenchidos",
+      detalhes: error.message
+    })
+  }
+  if (tipo == "temperatura") {
+    const { valor_convertido, classificacao } = calculartemperatura(valor_original);
+    const unidade_convertida = "fahrenheit"
+
+    try {
+      const [rows] = db.execute('UPDATE `medicoes` SET `descricao` = ?,`tipo` = ?,`valor_original` = ? ,`unidade_original` = ? ,`valor_convertido` = ? ,`unidade_convertida` = ? ,`classificacao` = ? WHERE `medicoes`.`id` = ?;', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao, id])
+      res.status(200).json({
+        mensagem: "atualizado com sucesso"
+      })
+    } catch (error) {
+      res.status(500).json({
+        mensagem: "Erro Interno do Servidor",
+        detalhes: error.message
+      });
+    }
+  } else if (tipo == "comprimento") {
+    const { valor_convertido, classificacao } = calcularcomprimento(valor_original);
+    const unidade_convertida = "pés"
+
+    try {
+      const [rows] = await db.execute('UPDATE `medicoes` SET `descricao` = ?,`tipo` = ?,`valor_original` = ? ,`unidade_original` = ? ,`valor_convertido` = ? ,`unidade_convertida` = ? ,`classificacao` = ? WHERE `medicoes`.`id` = ?;', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao, id])
+      res.status(200).json({
+        mensagem: "atualizado com sucesso"
+      })
+    } catch (error) {
+      res.status(500).json({
+        mensagem: "Erro Interno do Servidor",
+        detalhes: error.message
+      });
+    }
+  } else if (tipo == "velocidade") {
+    const { valor_convertido, classificacao } = calcularvelocidade(valor_original);
+    const unidade_convertida = "m/s"
+
+    try {
+      const [rows] = db.execute('UPDATE `medicoes` SET `descricao` = ?,`tipo` = ?,`valor_original` = ? ,`unidade_original` = ? ,`valor_convertido` = ? ,`unidade_convertida` = ? ,`classificacao` = ? WHERE `medicoes`.`id` = ?;', [descricao, tipo, valor_original, unidade_original, valor_convertido, unidade_convertida, classificacao, id])
+      res.status(200).json({
+        mensagem: "atualizado com sucesso"
+      })
+    } catch (error) {
+      res.status(500).json({
+        mensagem: "Erro Interno do Servidor",
+        detalhes: error.message
+      });
+    }
+  }
+})
+
+app.delete('/medicao/:id', async (req, res) => {
+  const {id} = req.params
+
+  try {
+    const [rows] = await db.execute ('DELETE FROM `medicoes` WHERE `id` = ?',[id])
+    if(rows.affectedRows === 0){
+      return res.status(404).json({
+        mensagem:"paciente não encontrado"
+      })
+    }
+    res.status[200].json({mensagem: "medição apagada com susseso"})
+  } catch (error) {
+    res.status(500).json({
+      mensagem: "Erro Interno do Servidor",
+      detalhes: error.message
+    });
+  }
+})
+
+
 
 
 
